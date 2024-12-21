@@ -3,27 +3,27 @@
 update_func() {
     (
         # =================================================================
-        echo "# Running First Task."
+        echo "# Updating packages (APT)"
         sleep 2
         # Command for first task goes on this line.
         zenity --password --title="Enter your password for sudo" | sudo -S apt-get update -y
 
         # =================================================================
         echo "25"
-        echo "# Running Second Task."
+        echo "# Running apt upgrade"
         sleep 2
         # Command for second task goes on this line.
         sudo -S apt upgrade -y
 
         # =================================================================
         echo "50"
-        echo "# Running Third Task."
+        echo "# Removing unused packages (APT)"
         sleep 2
         sudo -S apt-get autoremove -y
 
         # =================================================================
         echo "75"
-        echo "# Running Fourth Task."
+        echo "# Updating FlatPak"
         sleep 2
         # Command for fourth task goes on this line.
         sudo -S flatpak update -y
@@ -36,7 +36,7 @@ update_func() {
     ) |
         zenity --progress \
             --title="Progress Status" \
-            --text="First Task." \
+            --text="Updating..." \
             --percentage=0 \
             --auto-close \
             --auto-kill
@@ -46,28 +46,19 @@ update_func() {
 
 # Function to display system information
 show_sys_info() {
-    sysopt=$(zenity --list \
-        --title="Spark System Management" \
-        --column="Bug Number" --column="Description" --hide-header \
-        1 "Update System" \
-        2 "Reboot")
+    sysopt=$(zenity --list --radiolist --title="Choose an Option" \
+        --text="Choose a task:" \
+        --column="Select" --column="Action" \
+        TRUE "Update System" \
+        FALSE "Reboot")
     echo $sysopt
     case $sysopt in
-    1)
+    "Update System")
         update_func
         return
         ;;
-    2)
+    "Reboot")
         zenity --password --title="Enter your password for sudo" | sudo -S reboot
-        ;;
-    3)
-        pkg_srvc
-        ;;
-    4)
-        show_usr_mgmt
-        ;;
-    5)
-        return
         ;;
     *)
         echo "Invalid choice, please try again."
@@ -77,31 +68,31 @@ show_sys_info() {
 
 # Function to manage Packages (Uses APT and FlatPak)
 pkg_srvc() {
-    pkgopt=$(zenity --list \
-        --title="Spark Utility Panel" \
-        --column="Bug Number" --column="Description" --hide-header \
-        1 "Install Package (Apt)" \
-        2 "Uninstall Package (Apt)" \
-        3 "Install Package (FlatPak)" \
-        4 "Uninstall Package (FlatPak)")
+    pkgopt=$(zenity --list --radiolist --title="Choose an Option" \
+        --text="Choose a task: (NOTE: THIS RUNS IN THE BACKGROUND)" \
+        --column="Select" --column="Action" \
+        TRUE "Install Package (Apt)" \
+        FALSE "Uninstall Package (Apt)" \
+        FALSE "Install Package (FlatPak)" \
+        FALSE "Uninstall Package (FlatPak)")
     echo $pkgopt
     case $pkgopt in
-    1)
+    "Install Package (Apt)")
         pkg=$(zenity --entry --title="Spark Package Manager" --text="Please input a package you wish to install")
         zenity --password --title="Enter your password for sudo" | sudo -S apt-get install $pkg -y
         return
         ;;
-    2)
+    "Uninstall Package (Apt)")
         pkg=$(zenity --entry --title="Spark Package Manager" --text="Please input a package you wish to remove")
         zenity --password --title="Enter your password for sudo" | sudo -S apt-get remove $pkg -y
         return
         ;;
-    3)
+    "Install Package (FlatPak)")
         pkg=$(zenity --entry --title="Spark Package Manager" --text="Please input a package you wish to install")
         zenity --password --title="Enter your password for sudo" | sudo -S flatpak install $pkg -y
         return
         ;;
-    4)
+    "Uninstall Package (FlatPak)")
         pkg=$(zenity --entry --title="Spark Package Manager" --text="Please input a package you wish to remove")
         zenity --password --title="Enter your password for sudo" | sudo -S flatpak uninstall $pkg -y
         return
@@ -116,16 +107,16 @@ pkg_srvc() {
 # Function to manage users (add/remove/etc)
 show_usr_mgmt() {
 
-    usropt=$(zenity --list \
-        --title="Spark User Management" \
-        --column="Bug Number" --column="Description" --hide-header \
-        1 "Add User" \
-        2 "Delete User" \
-        3 "Update User Info")
+    usropt=$(zenity --list --radiolist --title="Choose an Option" \
+        --text="Choose a task:" \
+        --column="Select" --column="Action" \
+        TRUE "Add User" \
+        FALSE "Remove User" \
+        FALSE "Update User")
     echo $usropt
 
     case $usropt in
-    1)
+    "Add User")
         # Collect the user data using Zenity forms
         datafill=$(zenity --forms \
             --title="Spark User Management" \
@@ -162,7 +153,7 @@ show_usr_mgmt() {
             zenity --error --text="Password is too weak! It must contain at least 8 characters, including uppercase, lowercase, and a number."
         fi
         ;;
-    2)
+    "Remove User")
         username_to_delete=$(zenity --entry --title="Delete User" --text="Enter the username of the user to delete:")
 
         if [[ -n "$username_to_delete" ]]; then
@@ -191,17 +182,15 @@ show_usr_mgmt() {
             zenity --error --text="No username entered. Deletion canceled."
         fi
         ;;
-    3)
+    "Update User")
         # Update User Info (Change Password or Username)
-        update_option=$(zenity --list \
-            --title="Update User Info" \
-            --column="Option" --column="Description" \
-            1 "Change Password" \
-            2 "Change Username" \
-            --hide-header)
-
+        update_option=$(zenity --list --radiolist --title="Choose an Option" \
+        --text="Choose a task:" \
+        --column="Select" --column="Action" \
+        TRUE "Update Password" \
+        FALSE "Update Username")
         case $update_option in
-        1)
+        "Update Password")
             username_to_update=$(zenity --entry --title="Change Password" --text="Enter the username whose password you want to change:")
 
             if [[ -n "$username_to_update" ]]; then
@@ -240,7 +229,7 @@ show_usr_mgmt() {
             fi
             ;;
 
-        2)
+        "Update Username")
             old_username=$(zenity --entry --title="Change Username" --text="Enter the current username:")
 
             if [[ -n "$old_username" ]]; then
@@ -277,58 +266,67 @@ show_usr_mgmt() {
 
 # Function to manage services (start/stop/status)
 manage_services() {
-    echo "Enter the name of the service (e.g., apache2, nginx, etc.):"
-    read service
-    echo "Choose an option:"
-    echo "1. Start Service"
-    echo "2. Stop Service"
-    echo "3. Check Service Status"
-    echo "4. Go back"
-    read service_choice
+    # Ask for the service name using Zenity input dialog
+    service=$(zenity --entry --title="Enter Service Name" --text="Enter the name of the service (e.g., apache2, nginx, etc.):")
 
+    # If user presses Cancel or leaves the field empty, exit the script
+    if [ -z "$service" ]; then
+        zenity --error --text="No service name entered. Exiting."
+        exit 1
+    fi
+
+    # Ask for the action to perform on the service using a Zenity menu
+    service_choice=$(zenity --list --radiolist --title="Choose an Option" \
+        --text="Choose an option for service $service:" \
+        --column="Select" --column="Action" \
+        TRUE "Start Service" \
+        FALSE "Stop Service" \
+        FALSE "Check Service Status" \
+        FALSE "Go back")
+
+    # Handle the service choice
     case $service_choice in
-    1)
-        sudo systemctl start "$service"
-        echo "Service $service started."
+    "Start Service")
+        zenity --password --title="Enter your password for sudo" | sudo -S systemctl start "$service"
+        zenity --info --text="Service $service started."
         ;;
-    2)
-        sudo systemctl stop "$service"
-        echo "Service $service stopped."
+    "Stop Service")
+        zenity --password --title="Enter your password for sudo" | sudo -S systemctl stop "$service"
+        zenity --info --text="Service $service stopped."
         ;;
-    3)
-        sudo systemctl status "$service"
+    "Check Service Status")
+        status=$(zenity --password --title="Enter your password for sudo" | sudo -S systemctl status "$service" | zenity --text-info --title="Service Status" --width=600 --height=400)
         ;;
-    4)
-        return
+    "Go back")
+        exit 0
         ;;
     *)
-        zenity --error --text="Invalid choice."
+        zenity --error --text="Invalid choice. Please try again."
         ;;
     esac
-    echo
 }
 
 # Main menu
 main_menu() {
-    mainopt=$(zenity --list \
-        --title="Spark Utility Panel" \
-        --column="Bug Number" --column="Description" --hide-header \
-        1 "System Management Panel" \
-        2 "Package Management Panel" \
-        3 "Service Management Panel" \
-        4 "User Management Panel")
+        mainopt=$(zenity --list --radiolist --title="Choose an Option" \
+        --text="Choose a task:" \
+        --column="Select" --column="Action" \
+        TRUE "System Management Panel" \
+        FALSE "Package Management Panel" \
+        FALSE "Service Management Panel" \
+        FALSE "User Management Panel")
     echo $mainopt
     case $mainopt in
-    1)
+    "System Management Panel")
         show_sys_info
         ;;
-    2)
+    "Package Management Panel")
         pkg_srvc
         ;;
-    3)
+    "Service Management Panel")
         manage_services
         ;;
-    4)
+    "User Management Panel")
         show_usr_mgmt
         ;;
     *)
