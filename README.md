@@ -33,13 +33,13 @@ Ensure that the following packages are installed on your system:
 1. Clone the Spark repository to your local machine:
 
    ```bash
-   git clone https://github.com/the-general-t/spark.git
+   git clone https://github.com/The-General-T/Spark-Admin-Panel.git
    ```
 
 2. Navigate to the project directory:
 
    ```bash
-   cd spark
+   cd Spark-Admin-Panel
    ```
 
 3. Make the script executable:
