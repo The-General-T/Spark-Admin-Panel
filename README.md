@@ -16,6 +16,9 @@ Spark is a BASH script GUI utility panel designed to simplify various backend ac
 - **Package Management**
   - Install, remove, or update packages using APT.
   - Manage FlatPak applications.
+- **IPTable Management**
+  - Add, Remove, and Edit rulesets
+  - List all current rulesets
 
 ## Installation
 
