@@ -314,7 +314,8 @@ main_menu() {
         TRUE "System Management Panel" \
         FALSE "Package Management Panel" \
         FALSE "Service Management Panel" \
-        FALSE "User Management Panel")
+        FALSE "User Management Panel" \
+        FALSE "Iptables Management Panel")
     echo $mainopt
     case $mainopt in
     "System Management Panel")
@@ -329,6 +330,9 @@ main_menu() {
     "User Management Panel")
         show_usr_mgmt
         ;;
+    "Iptables Management Panel")
+        bash iptables_manager.sh
+        ;;
     *)
         exit 0
         ;;
@@ -339,6 +343,6 @@ while true; do
     if sudo -n true; then
         main_menu
     else
-        zenity --password | sudo -S -v
+        zenity --password --title="This program uses SUDO. Please enter your password." | sudo -S -v
     fi
 done
